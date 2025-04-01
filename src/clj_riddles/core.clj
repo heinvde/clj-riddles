@@ -61,8 +61,8 @@
                                (sort has-more-load?)
                                (first))] ; Choose best shipment (truck that takes most boxes)
         (recur
-         (filter #(not= (first %) (:truck best-shipment)) remaining-trucks)
-         (difference remaining-boxes (:boxes best-shipment))
+         (filter #(not= (first %) (:truck best-shipment)) remaining-trucks) ; Remove best truck
+         (->> best-shipment :boxes (difference remaining-boxes)) ; Remove packed boxes
          (conj shipments best-shipment))
         {:shipments shipments}))))
 
@@ -78,7 +78,7 @@
                            (:shipments $))
           get-remaining-boxes (comp
                                (partial difference remaining-boxes)
-                               (partial reduce concat)
+                               flatten
                                (partial map :boxes))]
       (if (empty? trip-shipments)
         (vec shipments)
@@ -87,7 +87,7 @@
          (concat shipments trip-shipments))))))
 
 (def transfer-time 1)
-(def return-time 1)
+(def return-time transfer-time)
 
 (defn get-trip-estimate
   "Takes an array of truck capacities and an array of box weights and returns the estimated total travel time in hours required to transport all boxes to the destination."
